@@ -2,7 +2,7 @@
 
 namespace transport_catalogue {
 
-    void TransportCatalogue::AddStop(std::string name, Coordinates coordinates) {
+    void TransportCatalogue::AddStop(const std::string& name, Coordinates coordinates) {
         using namespace std::string_literals;
         if (!IsValidLatitude(coordinates.lat)) {
             throw std::invalid_argument("latitude invvalue"s);
@@ -28,7 +28,7 @@ namespace transport_catalogue {
         stops_pair_to_distance_[{stop_first, stop_second}] = distance;
     }
 
-    void TransportCatalogue::AddBus(std::string name, std::vector<std::string> stop_names, bool is_loop) {
+    void TransportCatalogue::AddBus(const std::string& name, const std::vector<std::string>& stop_names, bool is_loop) {
         using namespace std::string_literals;
         if (!IsValueName(name)) {
             throw std::invalid_argument("Bus name contains prohibited characters"s);

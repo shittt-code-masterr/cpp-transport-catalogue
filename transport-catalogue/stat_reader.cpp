@@ -49,8 +49,8 @@ namespace transport_catalogue {
 
                         auto bus_info = catalogue.GetBusInfo(bus_name);
                         output << "Bus " << bus_name << ": " << bus_info.stops_in_route << " stops on route, "
-                            << bus_info.unique_route << " unique stops, " << std::setprecision(6) << bus_info.route_lenght
-                            << " route length, " << bus_info.geography_lenght << " curvature" << std::endl;
+                            << bus_info.unique_route << " unique stops, " << std::setprecision(6) << bus_info.route_length
+                            << " route length, " << bus_info.geography_length << " curvature" << std::endl;
                     }
                     catch (const std::exception& e) {
                         output << "Bus " << bus_name << ": " << "not found" << std::endl;
