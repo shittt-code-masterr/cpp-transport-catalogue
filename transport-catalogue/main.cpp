@@ -6,7 +6,7 @@
 
 
 int main() {    
-    //std::ifstream in("input.json");
-     setlocale(LC_ALL, "ru_RU.UTF-8");
-    ProcessJsonRequests(std::cin, std::cout);
+    std::ofstream in("stdout.json");
+    JSONReader proces;
+    proces.ProcessJsonRequests(std::cin, std::cout);
 }

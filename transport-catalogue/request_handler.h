@@ -17,9 +17,9 @@ public:
     
     std::set<std::string_view> GetBusesByStop(const std::string_view& stop_name) const;
 
-    svg::Document RenderMap() const;
+    svg::Document RenderMap() ;
 
-    void BuildMap();
+    
 
     
    
@@ -28,7 +28,5 @@ private:
     renderer::MapRenderer &renderer_;
 
 
-    void BuildBusName(renderer::SphereProjector proj_);
-
-    void BuildStops(std::map<std::string, geo::Coordinates>& stops, renderer::SphereProjector proj_);
+   
 };

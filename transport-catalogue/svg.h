@@ -364,7 +364,7 @@
 
 			template <typename Obj>
 			void Add(Obj obj) {
-				AddPtr(std::make_unique<Obj>(std::move(obj)));
+				AddPtr(std::move(std::make_unique<Obj>(obj)));
 			}
 		
 			// Добавляет в svg-документ объект-наследник svg::Object

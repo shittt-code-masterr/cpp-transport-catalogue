@@ -14,7 +14,7 @@ namespace transport_catalogue {
             throw std::invalid_argument("Stop name invvalue"s);
         }*/
         if (!FindStop(name)) {
-            stops_.emplace_back(Stop{name, coordinates });
+            stops_.emplace_back(Stop{ name, coordinates });
             auto stop_ptr = std::make_shared<Stop>(stops_.back());
 
             stopname_to_stop_[stop_ptr->name] = stop_ptr;;
@@ -85,7 +85,7 @@ namespace transport_catalogue {
             geography_length += ComputeDistance(first->coordinates, sec->coordinates);
         }
 
-        return { size , u_size , real_length, real_length / geography_length }; 
+        return { size , u_size , real_length, real_length / geography_length };
     }
 
     std::set<std::string_view> TransportCatalogue::GetStopInfo(std::string_view stop_name) const {

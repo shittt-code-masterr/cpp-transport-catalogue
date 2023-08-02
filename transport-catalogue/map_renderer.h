@@ -13,7 +13,7 @@
 #include <map>
 #include "svg.h"
 #include "geo.h"
-
+#include "transport_catalogue.h"
 
 
 
@@ -41,11 +41,6 @@ namespace renderer {
         std::vector<svg::Color> color_palette{ "green", svg::Rgb(255, 160, 0), "red" };
         
     };
-
-
-
-
-   
 
     class SphereProjector {
     public:
@@ -127,28 +122,28 @@ namespace renderer {
 
         void SetSetting(RenderSettings setting);
 
-        SphereProjector AddRoute(std::vector<geo::Coordinates> coord, std::vector< std::vector<geo::Coordinates>> all_stop);
-        
-        void AddBusName(std::string bus_name, geo::Coordinates begin, geo::Coordinates end, SphereProjector& proj,int start);
-
         svg::Document GetDocument() const;
 
-        void AddStop(std::map<std::string, geo::Coordinates>& stops, SphereProjector& proj);
-
-        void AddStopName(std::map<std::string, geo::Coordinates>& stops, SphereProjector& proj);
-        
+        void BuildMap(transport_catalogue::TransportCatalogue& db_);
 
     private:
 
         RenderSettings setting_;
         svg::Document doc_;
         
-        
-        
+        SphereProjector AddAllRoute(std::vector<geo::Coordinates>& all_route_);
 
-        SphereProjector AddAllRoute(std::vector<geo::Coordinates> all_route_);
+        SphereProjector AddRoute(std::vector<geo::Coordinates>& coord, std::vector< std::vector<geo::Coordinates>>& all_stop);
 
-       
+        void AddBusName(std::string& bus_name, geo::Coordinates begin, geo::Coordinates end, SphereProjector& proj, int start);
+
+        void AddStop(std::map<std::string, geo::Coordinates>& stops, SphereProjector& proj);
+
+        void AddStopName(std::map<std::string, geo::Coordinates>& stops, SphereProjector& proj);
+        
+        void BuildBusName(transport_catalogue::TransportCatalogue& db_, renderer::SphereProjector proj_);
+
+        void BuildStops(std::map<std::string, geo::Coordinates>& stops, renderer::SphereProjector proj_);
         
     };
 }//renderer

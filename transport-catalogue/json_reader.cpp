@@ -1,6 +1,7 @@
 #include "json_reader.h"
 
-RequestMap& ParseAddRequst(RequestMap& requsts, const json::Node& node) {
+JSONReader::RequestMap& JSONReader::ParseAddRequst(RequestMap& requsts, const json::Node& node) {
+	using namespace std::literals;
 	auto& map_ = node.AsMap();
 	auto& type_ = map_.at("type").AsString();
 	if (type_ == "Stop"s)
@@ -16,7 +17,8 @@ RequestMap& ParseAddRequst(RequestMap& requsts, const json::Node& node) {
 	return requsts;
 }
 
-RequestMap& ParseGetRequst(RequestMap& requsts, const json::Node& node) {
+JSONReader::RequestMap& JSONReader::ParseGetRequst(RequestMap& requsts, const json::Node& node) {
+	using namespace std::literals;
 	auto map_ = node.AsMap();
 	auto type_ = map_.at("type").AsString();
 	if (type_ == "Stop"s) {
@@ -37,8 +39,8 @@ RequestMap& ParseGetRequst(RequestMap& requsts, const json::Node& node) {
 	return requsts;
 }
 
-RequestMap ParseJson(std::istream& input,renderer::MapRenderer& map) {
-
+JSONReader::RequestMap JSONReader::ParseJson(std::istream& input,renderer::MapRenderer& map) {
+	using namespace std::literals;
 	RequestMap requsts;
 	
 	auto node_ = json::Load(input).GetRoot().AsMap();
@@ -58,7 +60,7 @@ RequestMap ParseJson(std::istream& input,renderer::MapRenderer& map) {
 	return requsts;
 }
 
-transport_catalogue::TransportCatalogue& ProcesAddRequest(RequestMap& requests, transport_catalogue::TransportCatalogue& catalogue) {
+transport_catalogue::TransportCatalogue& JSONReader::ProcesAddRequest(RequestMap& requests, transport_catalogue::TransportCatalogue& catalogue) {
 	if (requests.find(RequestType::AddStop) != requests.end()) {
 		for (auto request : requests.at(RequestType::AddStop)) {
 			auto tmp_ = std::get<AddStopRequest>(request);
@@ -82,7 +84,8 @@ transport_catalogue::TransportCatalogue& ProcesAddRequest(RequestMap& requests, 
 	}
 	return catalogue;
 }
-json::Dict BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
+json::Dict JSONReader::BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
+	using namespace std::literals;
 	transport_catalogue::BusInfo info_ = catalogue.GetBusInfo(request.name);
 	json::Dict answer = {
 		{"curvature"s, json::Node( info_.geography_length)},
@@ -95,7 +98,8 @@ json::Dict BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue,
 
 }
 
-json::Dict BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
+json::Dict JSONReader::BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
+	using namespace std::literals;
 	auto info_ = catalogue.GetStopInfo(request.name);
 	json::Array buses;
 	for (auto bus : info_) {
@@ -108,7 +112,9 @@ json::Dict BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue
 	return answer;
 
 }
-json::Document ProcesGetRequest(RequestMap& requests, transport_catalogue::TransportCatalogue& catalogue, renderer::MapRenderer& map) {
+json::Document JSONReader::ProcesGetRequest(RequestMap& requests, transport_catalogue::TransportCatalogue& catalogue, renderer::MapRenderer& map) {
+
+	using namespace std::literals;
 	json::Array result;
 	for (auto request : requests.at(RequestType::GetInfo)) {
 		auto tmp_ = std::get<GetInfo>(request);
@@ -146,7 +152,7 @@ json::Document ProcesGetRequest(RequestMap& requests, transport_catalogue::Trans
 		case RequestType::GetMap: {
 			
 			RequestHandler manager(catalogue, map);
-			manager.BuildMap();
+			
 			auto doc = manager.RenderMap();
 			std::ostringstream map_setting;
 			doc.Render(map_setting);
@@ -169,7 +175,7 @@ json::Document ProcesGetRequest(RequestMap& requests, transport_catalogue::Trans
 
 
 
-renderer::MapRenderer ParseRenderSetting(const json::Dict& node, renderer::MapRenderer& map_for_setting) {
+renderer::MapRenderer JSONReader::ParseRenderSetting(const json::Dict& node, renderer::MapRenderer& map_for_setting) {
 	renderer::RenderSettings settings;
 	settings.width = node.at("width").AsDouble();
 	settings.height = node.at("height").AsDouble();
@@ -210,7 +216,7 @@ renderer::MapRenderer ParseRenderSetting(const json::Dict& node, renderer::MapRe
 
 
 
-svg::Color ParseColor(const json::Node& color_) {
+svg::Color JSONReader::ParseColor(const json::Node& color_) {
 	svg::Color underlayer_color;
 
 	if (color_.IsString()) {
@@ -237,7 +243,7 @@ svg::Color ParseColor(const json::Node& color_) {
 }
 
 
-void ProcessJsonRequests(std::istream& input, std::ostream& output) {
+void JSONReader::ProcessJsonRequests(std::istream& input, std::ostream& output) {
 	renderer::MapRenderer map_;
 	auto i = ParseJson(input, map_);
 	transport_catalogue::TransportCatalogue db;
