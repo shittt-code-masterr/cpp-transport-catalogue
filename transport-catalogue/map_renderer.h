@@ -117,12 +117,13 @@ namespace renderer {
     class MapRenderer {
     public:
         MapRenderer() = default;
+        MapRenderer(const MapRenderer&) = delete;
 
         MapRenderer(RenderSettings setting);
 
         void SetSetting(RenderSettings setting);
 
-        svg::Document GetDocument() const;
+        std::ostream&GetDocument(std::ostream& out) const ;
 
         void BuildMap(transport_catalogue::TransportCatalogue& db_);
 

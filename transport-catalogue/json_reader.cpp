@@ -1,12 +1,12 @@
 #include "json_reader.h"
-
+#include "json_builder.h"
 JSONReader::RequestMap& JSONReader::ParseAddRequst(RequestMap& requsts, const json::Node& node) {
 	using namespace std::literals;
-	auto& map_ = node.AsMap();
+	auto& map_ = node.AsDict();
 	auto& type_ = map_.at("type").AsString();
 	if (type_ == "Stop"s)
 	{
-		AddStopRequest tmp_ = { map_.at("name"s).AsString(), {map_.at("latitude"s).AsDouble(),map_.at("longitude"s).AsDouble()},map_.at("road_distances"s).AsMap() };
+		AddStopRequest tmp_ = { map_.at("name"s).AsString(), {map_.at("latitude"s).AsDouble(),map_.at("longitude"s).AsDouble()},map_.at("road_distances"s).AsDict() };
 		requsts[RequestType::AddStop].push_back(tmp_);
 	}
 	else if (type_ == "Bus"s)
@@ -19,7 +19,7 @@ JSONReader::RequestMap& JSONReader::ParseAddRequst(RequestMap& requsts, const js
 
 JSONReader::RequestMap& JSONReader::ParseGetRequst(RequestMap& requsts, const json::Node& node) {
 	using namespace std::literals;
-	auto map_ = node.AsMap();
+	auto map_ = node.AsDict();
 	auto type_ = map_.at("type").AsString();
 	if (type_ == "Stop"s) {
 		GetInfo tmp_ = { RequestType::GetStopInfo,map_.at("id"s).AsInt(),map_.at("name"s).AsString() };
@@ -43,7 +43,7 @@ JSONReader::RequestMap JSONReader::ParseJson(std::istream& input,renderer::MapRe
 	using namespace std::literals;
 	RequestMap requsts;
 	
-	auto node_ = json::Load(input).GetRoot().AsMap();
+	auto node_ = json::Load(input).GetRoot().AsDict();
 	if (node_.find("base_requests"s)!= node_.end()) {
 		for (auto& n : node_.at("base_requests"s).AsArray()) {
 			ParseAddRequst(requsts, n);
@@ -55,7 +55,7 @@ JSONReader::RequestMap JSONReader::ParseJson(std::istream& input,renderer::MapRe
 		}
 	}
 	if (node_.find("render_settings"s) != node_.end()) {
-		ParseRenderSetting(node_.at("render_settings"s).AsMap(), map);
+		ParseRenderSetting(node_.at("render_settings"s).AsDict(), map);
 	}
 	return requsts;
 }
@@ -84,31 +84,39 @@ transport_catalogue::TransportCatalogue& JSONReader::ProcesAddRequest(RequestMap
 	}
 	return catalogue;
 }
-json::Dict JSONReader::BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
+json::Node JSONReader::BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
 	using namespace std::literals;
-	transport_catalogue::BusInfo info_ = catalogue.GetBusInfo(request.name);
-	json::Dict answer = {
-		{"curvature"s, json::Node( info_.geography_length)},
-		{"request_id"s, json::Node(request.id)},
-		{"route_length"s, json::Node(info_.route_length)},
-		{"stop_count"s, json::Node(info_.stops_in_route)},
-		{"unique_stop_count"s, json::Node(info_.unique_route)}
-	};
+	BusInfo info_ = catalogue.GetBusInfo(request.name);
+	auto answer =
+	json::Builder{}
+		.StartDict()
+			.Key("curvature"s).Value(info_.geography_length)
+			.Key("request_id"s).Value(request.id)
+			.Key("route_length"s).Value(info_.route_length)
+			.Key("stop_count"s).Value(info_.stops_in_route)
+			.Key("unique_stop_count"s).Value(info_.unique_route)
+		.EndDict()
+	.Build();
+
 	return answer;
 
 }
 
-json::Dict JSONReader::BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
+json::Node JSONReader::BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request) {
 	using namespace std::literals;
 	auto info_ = catalogue.GetStopInfo(request.name);
 	json::Array buses;
 	for (auto bus : info_) {
 		buses.push_back(json::Node(std::string(bus)));
 	}
-	json::Dict answer = {
-		{"buses", json::Node(buses)},
-		{"request_id"s, json::Node(request.id)}
-	};
+	auto answer =
+		json::Builder{}
+			.StartDict()
+				.Key("buses"s).Value(buses)
+				.Key("request_id"s).Value(request.id)
+			.EndDict()
+		.Build();
+	
 	return answer;
 
 }
@@ -123,28 +131,34 @@ json::Document JSONReader::ProcesGetRequest(RequestMap& requests, transport_cata
 		switch (tmp_.type) {
 		case RequestType::GetBusInfo: {
 			try {
-				json::Dict answer_ = BuildGetBusAnswer(catalogue, tmp_);
+				json::Node answer_ = BuildGetBusAnswer(catalogue, tmp_);
 				result.push_back(json::Node(answer_));
 			}
 			catch (std::exception& e) {
-				json::Dict answer_ = {
-					{"request_id"s, json::Node(tmp_.id)},
-					{"error_message"s, json::Node("not found"s)}
-				};
+				auto answer_ = 
+				json::Builder{}
+					.StartDict()
+						.Key("request_id"s).Value(tmp_.id)
+						.Key("error_message"s).Value("not found"s)
+					.EndDict()
+				.Build();
 				result.push_back(json::Node(answer_));
 			}
 			break;
 		}
 		case RequestType::GetStopInfo: {
 			try {
-				json::Dict answer_ = BuildGetStopAnswer(catalogue, tmp_);
+				json::Node answer_ = BuildGetStopAnswer(catalogue, tmp_);
 				result.push_back(json::Node(answer_));
 			}
 			catch (std::exception& e) {
-				json::Dict answer_ = {
-					{"request_id"s, json::Node(tmp_.id)},
-					{"error_message"s, json::Node("not found"s)}
-				};
+				auto answer_ =
+				json::Builder{}
+					.StartDict()
+						.Key("request_id"s).Value(tmp_.id)
+						.Key("error_message"s).Value("not found"s)
+					.EndDict()
+				.Build();
 				result.push_back(json::Node(answer_));
 			}
 			break;
@@ -152,15 +166,20 @@ json::Document JSONReader::ProcesGetRequest(RequestMap& requests, transport_cata
 		case RequestType::GetMap: {
 			
 			RequestHandler manager(catalogue, map);
-			
-			auto doc = manager.RenderMap();
 			std::ostringstream map_setting;
-			doc.Render(map_setting);
-			json::Dict answer = {
-				{"map", json::Node(map_setting.str())},
-				{"request_id"s, json::Node(tmp_.id)}
-			};
-			result.push_back(json::Node(answer));
+			manager.RenderMap(map_setting);
+			
+			
+			auto answer_ =
+			json::Builder{}
+				.StartDict()
+					.Key("map"s).Value(map_setting.str())
+					.Key("request_id"s).Value(tmp_.id)
+				.EndDict()
+			.Build();
+			
+			
+			result.push_back(answer_);
 		
 		}
 		default: {
@@ -175,7 +194,7 @@ json::Document JSONReader::ProcesGetRequest(RequestMap& requests, transport_cata
 
 
 
-renderer::MapRenderer JSONReader::ParseRenderSetting(const json::Dict& node, renderer::MapRenderer& map_for_setting) {
+void JSONReader::ParseRenderSetting(const json::Dict& node, renderer::MapRenderer& map_for_setting) {
 	renderer::RenderSettings settings;
 	settings.width = node.at("width").AsDouble();
 	settings.height = node.at("height").AsDouble();
@@ -197,7 +216,7 @@ renderer::MapRenderer JSONReader::ParseRenderSetting(const json::Dict& node, ren
 	for (auto offset : node.at("stop_label_offset").AsArray()) {
 		settings.stop_label_offset.push_back(offset.AsDouble());
 	}
-	
+
 	settings.underlayer_color = ParseColor(node.at("underlayer_color"));
 
 	// Parse color_palette
@@ -205,17 +224,11 @@ renderer::MapRenderer JSONReader::ParseRenderSetting(const json::Dict& node, ren
 	for (auto color : node.at("color_palette").AsArray()) {
 		settings.color_palette.push_back(ParseColor(color));
 	}
-
 	map_for_setting.SetSetting(settings);
 
-
-	return map_for_setting;
 }
 
-
-
-
-
+	
 svg::Color JSONReader::ParseColor(const json::Node& color_) {
 	svg::Color underlayer_color;
 

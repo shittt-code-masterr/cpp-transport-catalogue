@@ -13,6 +13,7 @@
 #include "map_renderer.h"
 #include "svg.h"
 #include "request_handler.h"
+#include "domain.h"
 enum class RequestType {
 		AddStop,
 		AddBus,
@@ -54,9 +55,9 @@ public:
 
 	RequestMap ParseJson(std::istream& input, renderer::MapRenderer& map_for_setting);
 
-	json::Dict BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request);
+	json::Node BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request);
 
-	json::Dict BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request);
+	json::Node BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request);
 
 	transport_catalogue::TransportCatalogue& ProcesAddRequest(RequestMap& requests, transport_catalogue::TransportCatalogue& catalogue);
 
@@ -64,7 +65,7 @@ public:
 
 	svg::Color ParseColor(const json::Node& color_);
 
-	renderer::MapRenderer ParseRenderSetting(const json::Dict& node, renderer::MapRenderer& map_for_setting);
+	void ParseRenderSetting(const json::Dict& node, renderer::MapRenderer& map_for_setting);
 
 	void ProcessJsonRequests(std::istream& input, std::ostream& output);
 };

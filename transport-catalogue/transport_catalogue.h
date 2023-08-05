@@ -12,29 +12,13 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <memory>
-
+#include "domain.h"
 #include "geo.h"
 
 
 namespace transport_catalogue {
     using geo::Coordinates;
-    struct Stop {
-        std::string name;
-        Coordinates coordinates;
-    };
-
-
-    struct Bus {
-        bool is_looped;
-        std::string name;
-        std::vector<std::shared_ptr<Stop>> route;
-    };
-    struct BusInfo {
-        int stops_in_route;
-        int unique_route;
-        double route_length;
-        double geography_length;
-    };
+   
     
     class TransportCatalogue {
 

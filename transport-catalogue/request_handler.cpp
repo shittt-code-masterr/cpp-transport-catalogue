@@ -8,7 +8,7 @@ RequestHandler::RequestHandler( transport_catalogue::TransportCatalogue& db,  re
 }
 
 // Возвращает информацию о маршруте (запрос Bus)
-std::shared_ptr<transport_catalogue::Bus> RequestHandler::GetBusStat(const std::string_view& bus_name) const {
+std::shared_ptr<Bus> RequestHandler::GetBusStat(const std::string_view& bus_name) const {
 	return db_.FindBus(bus_name);
 }
 
@@ -19,8 +19,9 @@ std::shared_ptr<transport_catalogue::Bus> RequestHandler::GetBusStat(const std::
 
 
 
-svg::Document RequestHandler::RenderMap()  {
+ std::ostream& RequestHandler::RenderMap(std::ostream& out) const {
 	renderer_.BuildMap(db_);
-	return renderer_.GetDocument();
+	renderer_.GetDocument(out);
+	return out;
 }
 

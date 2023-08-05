@@ -377,7 +377,7 @@
 
 			void Clear();
 		private:
-			std::vector<std::shared_ptr<Object>> items_;
+			std::vector<std::unique_ptr<Object>> items_;
 		};
 
 	}  // namespace svg

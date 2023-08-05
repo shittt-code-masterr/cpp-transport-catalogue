@@ -5,78 +5,138 @@
 #include <string>
 #include <variant>
 #include <vector>
-#include <iterator>
+
 namespace json {
-	
-	class Node;
-	using Dict = std::map<std::string, Node>;
-	using Array = std::vector<Node>;
 
-	class ParsingError : public std::runtime_error {
-	public:
-		using runtime_error::runtime_error;
-	};
+    class Node;
+    using Dict = std::map<std::string, Node>;
+    using Array = std::vector<Node>;
 
-	class Node final
-		: private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
-	public:
-		using variant::variant;
-		using Value = variant;
+    class ParsingError : public std::runtime_error {
+    public:
+        using runtime_error::runtime_error;
+    };
 
-		Node(const Value& value);
+    class Node final
+        : private std::variant<std::nullptr_t, Array, Dict, bool, int, double, std::string> {
+    public:
+        using variant::variant;
+        using Value = variant;
 
-		bool IsInt() const;
+        bool IsInt() const {
+            return std::holds_alternative<int>(*this);
+        }
+        int AsInt() const {
+            using namespace std::literals;
+            if (!IsInt()) {
+                throw std::logic_error("Not an int"s);
+            }
+            return std::get<int>(*this);
+        }
 
-		int AsInt() const;
+        bool IsPureDouble() const {
+            return std::holds_alternative<double>(*this);
+        }
+        bool IsDouble() const {
+            return IsInt() || IsPureDouble();
+        }
+        double AsDouble() const {
+            using namespace std::literals;
+            if (!IsDouble()) {
+                throw std::logic_error("Not a double"s);
+            }
+            return IsPureDouble() ? std::get<double>(*this) : AsInt();
+        }
 
-		bool IsPureDouble() const;
+        bool IsBool() const {
+            return std::holds_alternative<bool>(*this);
+        }
+        bool AsBool() const {
+            using namespace std::literals;
+            if (!IsBool()) {
+                throw std::logic_error("Not a bool"s);
+            }
 
-		bool IsDouble() const;
+            return std::get<bool>(*this);
+        }
 
-		double AsDouble() const;
+        bool IsNull() const {
+            return std::holds_alternative<std::nullptr_t>(*this);
+        }
 
-		bool IsBool() const;
+        bool IsArray() const {
+            return std::holds_alternative<Array>(*this);
+        }
+        const Array& AsArray() const {
+            using namespace std::literals;
+            if (!IsArray()) {
+                throw std::logic_error("Not an array"s);
+            }
 
-		bool AsBool() const;
+            return std::get<Array>(*this);
+        }
 
-		bool IsNull() const;
+        bool IsString() const {
+            return std::holds_alternative<std::string>(*this);
+        }
+        const std::string& AsString() const {
+            using namespace std::literals;
+            if (!IsString()) {
+                throw std::logic_error("Not a string"s);
+            }
 
-		bool IsArray() const;
+            return std::get<std::string>(*this);
+        }
 
-		const Array& AsArray() const;
+        bool IsDict() const {
+            return std::holds_alternative<Dict>(*this);
+        }
+        const Dict& AsDict() const {
+            using namespace std::literals;
+            if (!IsDict()) {
+                throw std::logic_error("Not a dict"s);
+            }
 
-		bool IsString() const;
+            return std::get<Dict>(*this);
+        }
 
-		const std::string& AsString() const;
+        bool operator==(const Node& rhs) const {
+            return GetValue() == rhs.GetValue();
+        }
 
-		bool IsMap() const;
+        const Value& GetValue() const {
+            return *this;
+        }
+    };
 
-		const Dict& AsMap() const;
+    inline bool operator!=(const Node& lhs, const Node& rhs) {
+        return !(lhs == rhs);
+    }
 
-		bool operator==(const Node& rhs) const;
+    class Document {
+    public:
+        explicit Document(Node root)
+            : root_(std::move(root)) {
+        }
 
-		const Value& GetValue() const;
-	};
+        const Node& GetRoot() const {
+            return root_;
+        }
 
-	inline bool operator!=(const Node& lhs, const Node& rhs);
+    private:
+        Node root_;
+    };
 
-	class Document {
-	public:
-		explicit Document(Node root)
-			;
+    inline bool operator==(const Document& lhs, const Document& rhs) {
+        return lhs.GetRoot() == rhs.GetRoot();
+    }
 
-		const Node& GetRoot() const;
+    inline bool operator!=(const Document& lhs, const Document& rhs) {
+        return !(lhs == rhs);
+    }
 
-	private:
-		Node root_;
-	};
+    Document Load(std::istream& input);
 
-	inline bool operator==(const Document& lhs, const Document& rhs);
-
-	inline bool operator!=(const Document& lhs, const Document& rhs);
-
-	Document Load(std::istream& input);
-
-	void Print(const Document& doc, std::ostream& output);
+    void Print(const Document& doc, std::ostream& output);
 
 }  // namespace json

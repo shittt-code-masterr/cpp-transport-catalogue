@@ -2,7 +2,7 @@
 
 #include"transport_catalogue.h"
 #include"map_renderer.h"
-
+#include "domain.h"
 
 
 
@@ -12,12 +12,12 @@ public:
     RequestHandler(transport_catalogue::TransportCatalogue& db, renderer::MapRenderer& renderer);
 
     
-    std::shared_ptr<transport_catalogue::Bus> GetBusStat(const std::string_view& bus_name) const;
+    std::shared_ptr<Bus> GetBusStat(const std::string_view& bus_name) const;
 
     
     std::set<std::string_view> GetBusesByStop(const std::string_view& stop_name) const;
 
-    svg::Document RenderMap() ;
+    std::ostream&  RenderMap(std::ostream& out) const;
 
     
 
