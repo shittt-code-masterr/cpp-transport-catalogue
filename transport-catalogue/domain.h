@@ -8,6 +8,7 @@
 struct Stop {
     std::string name;
     geo::Coordinates coordinates;
+    size_t id = 0;
 };
 
 

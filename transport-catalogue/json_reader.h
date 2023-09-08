@@ -14,13 +14,20 @@
 #include "svg.h"
 #include "request_handler.h"
 #include "domain.h"
+#include "json_builder.h"
+#include "transport_router.h"
+
+
 enum class RequestType {
 		AddStop,
 		AddBus,
+		AddSetting,
 		GetInfo,
 		GetBusInfo,
 		GetStopInfo,
-		GetMap
+		GetMap,
+		GetRoute,
+		
 };
 struct AddStopRequest
 {
@@ -36,36 +43,53 @@ struct AddBusRequest
 	bool is_loop;
 };
 
+struct AddSettingRequest
+{
+	
+	int wait_time ;
+	double velosity_time;
+
+};
+
 struct GetInfo{
 	RequestType type;
 	int id;
-	
 	std::string name;
+	std::string name_to="";
+	
 };
+
 
 
 class JSONReader {
 public:
-	using RequestMap = std::map<RequestType, std::vector<std::variant<AddStopRequest, AddBusRequest, GetInfo>>>;
+	using RequestMap = std::map<RequestType, std::vector<std::variant<AddStopRequest, AddBusRequest, GetInfo, AddSettingRequest>>>;
 
+	void ProcessJsonRequests(std::istream& input, std::ostream& output);
 
-	RequestMap& ParseAddRequst(RequestMap& requsts, const json::Node& node);
+private:
+	transport_catalogue::TransportCatalogue db_;
+	renderer::MapRenderer map_;
+	RequestMap requsts_;
 
-	RequestMap& ParseGetRequst(RequestMap& requsts, const json::Node& node);
+	void ParseAddRequst(const json::Node& node);
 
-	RequestMap ParseJson(std::istream& input, renderer::MapRenderer& map_for_setting);
+	void ParseGetRequst(const json::Node& node);
 
-	json::Node BuildGetBusAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request);
+	void ParseJson(std::istream& input);
 
-	json::Node BuildGetStopAnswer(transport_catalogue::TransportCatalogue& catalogue, GetInfo request);
+	json::Node BuildGetBusAnswer(GetInfo request);
 
-	transport_catalogue::TransportCatalogue& ProcesAddRequest(RequestMap& requests, transport_catalogue::TransportCatalogue& catalogue);
+	json::Node BuildGetStopAnswer(GetInfo request);
 
-	json::Document ProcesGetRequest(RequestMap& requests, transport_catalogue::TransportCatalogue& catalogue, renderer::MapRenderer& map);
+	void ProcesAddRequest();
+
+	json::Document ProcesGetRequest();
 
 	svg::Color ParseColor(const json::Node& color_);
 
-	void ParseRenderSetting(const json::Dict& node, renderer::MapRenderer& map_for_setting);
+	void ParseRenderSetting(const json::Dict& node);
 
-	void ProcessJsonRequests(std::istream& input, std::ostream& output);
+	json::Node BuildGetRouteAnswer(GetInfo request, RequestHandler& manager);
+
 };

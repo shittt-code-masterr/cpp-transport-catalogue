@@ -27,7 +27,7 @@ namespace renderer {
     void MapRenderer::BuildMap(transport_catalogue::TransportCatalogue& db_) {
 
         auto name_ = db_.GetBusName();
-        bool flag = false;
+        
         std::set<std::string> stop_name;
 
         if (!name_.empty()) {

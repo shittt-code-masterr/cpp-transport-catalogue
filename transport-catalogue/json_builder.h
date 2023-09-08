@@ -1,33 +1,88 @@
-#pragma once
-
-#include<stack>
-#include"json.h"
+#include "json.h"
 
 namespace json {
 
-	class Builder
-	{
+	class ItemContext;
+	class KeyItemContext;
+	class DictItemContext;
+	class ArrayItemContext;
+
+	class Builder {
+
 	public:
-		Builder();
 
-		Builder& Value(Node value_);
+		Builder() = default;
 
-		Builder& Key(std::string key_);
+		KeyItemContext Key(std::string);
 
-		Builder& StartDict();
+		Builder& Value(Node, bool = false);
 
-		Builder& StartArray();
+		DictItemContext StartDict();
 
-		Builder& EndArray();
+		ArrayItemContext StartArray();
 
 		Builder& EndDict();
+
+		Builder& EndArray();
 
 		Node Build();
 
 	private:
-		Node root_;
+		Node node_;
 		std::vector<Node*> nodes_stack_;
+
+		bool is_empty_ = true;
 	};
 
+	class ItemContext {
 
-}//json
+	public:
+		ItemContext(Builder& builder)
+			:builder_(builder)
+		{
+		}
+
+	protected:
+
+		KeyItemContext Key(std::string);
+
+		DictItemContext StartDict();
+
+		ArrayItemContext StartArray();
+
+		Builder& EndDict();
+
+		Builder& EndArray();
+
+		Builder& builder_;
+	};
+
+	class ArrayItemContext : public ItemContext {
+	public:
+		using ItemContext::ItemContext;
+		using ItemContext::StartDict;
+		using ItemContext::StartArray;
+		using ItemContext::EndArray;
+
+		ArrayItemContext Value(Node value);
+
+	};
+
+	class DictItemContext : public ItemContext {
+	public:
+		using ItemContext::ItemContext;
+		using ItemContext::Key;
+		using ItemContext::EndDict;
+	};
+
+	class KeyItemContext : public ItemContext {
+	public:
+		using ItemContext::ItemContext;
+		using ItemContext::StartDict;
+		using ItemContext::StartArray;
+
+		DictItemContext Value(Node value);
+
+	};
+
+}

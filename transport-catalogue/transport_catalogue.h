@@ -57,9 +57,19 @@ namespace transport_catalogue {
 
         std::unordered_map<std::string_view, std::shared_ptr<Bus>, StringViewHasher> GetAllBuses()const;
 
-        std::set<std::string> GetBusName() const ;
-         
+        std::set<std::string> GetBusName() const;
 
+        const std::deque<Bus>& GetBuses() const;
+
+        const std::deque<Stop>& GetStops() const;
+
+        void SetWaitTime(int time);
+
+        void SetVelocityTime(double time);
+
+        int GetWaitTime() const ;
+
+        double GetVelocityTime() const ;
     private:
 
 
@@ -70,7 +80,8 @@ namespace transport_catalogue {
         std::unordered_map<std::string_view, std::shared_ptr<Bus>, StringViewHasher> busname_to_busese_;
         std::unordered_map<std::string_view, std::set<std::string_view>, StringViewHasher> stopname_to_busese_;
         std::unordered_map<std::pair<std::shared_ptr<Stop>, std::shared_ptr<Stop>>, double, HasherStop> stops_pair_to_distance_;
-
+        int bus_wait_time = 6;
+        double bus_velocity = 40;
 
 
 

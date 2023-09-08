@@ -14,7 +14,7 @@ namespace transport_catalogue {
             throw std::invalid_argument("Stop name invvalue"s);
         }*/
         if (!FindStop(name)) {
-            stops_.emplace_back(Stop{ name, coordinates });
+            stops_.emplace_back(Stop{ name, coordinates, stops_.size()});
             auto stop_ptr = std::make_shared<Stop>(stops_.back());
 
             stopname_to_stop_[stop_ptr->name] = stop_ptr;;
@@ -144,4 +144,29 @@ namespace transport_catalogue {
         return static_cast<int>(result.size());
     }
 
+    const std::deque<Bus>& TransportCatalogue::GetBuses() const{
+
+        return buses_;
+    }
+
+    const std::deque<Stop>& TransportCatalogue::GetStops() const {
+
+        return stops_;
+    }
+    void TransportCatalogue::SetWaitTime(int time)
+    {
+        bus_wait_time = time;
+    }
+    void TransportCatalogue::SetVelocityTime(double time)
+    {
+        bus_velocity = time;
+    }
+    int TransportCatalogue::GetWaitTime() const
+    {
+        return bus_wait_time;
+    }
+    double TransportCatalogue::GetVelocityTime() const
+    {
+        return bus_velocity;
+    }
 }
