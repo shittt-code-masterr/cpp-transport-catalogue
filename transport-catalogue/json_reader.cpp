@@ -4,6 +4,8 @@
 
 
 
+
+
 void JSONReader::ParseAddRequst(const json::Node& node) {
 	using namespace std::literals;
 	auto& map_ = node.AsDict();
@@ -52,22 +54,30 @@ void JSONReader::ParseJson(std::istream& input) {
 	
 	
 	auto node_ = json::Load(input).GetRoot().AsDict();
-	if (node_.find("base_requests"s)!= node_.end()) {
-		for (auto& n : node_.at("base_requests"s).AsArray()) {
-			ParseAddRequst(n);
+	
+	serialization_setting_ = node_.at("serialization_settings").AsDict().at("file").AsString();
+	if (is_make_base) {
+
+		if (node_.find("base_requests") != node_.end()) {
+
+			for (auto& n : node_.at("base_requests").AsArray()) {
+				ParseAddRequst(n);
+			}
+		}
+
+		if (node_.find("render_settings"s) != node_.end()) {
+			ParseRenderSetting(node_.at("render_settings"s).AsDict());
+		}
+		if (node_.find("routing_settings"s) != node_.end()) {
+			auto tmp_ = node_.at("routing_settings"s).AsDict();
+			requsts_[RequestType::AddSetting].push_back(AddSettingRequest{ tmp_.at("bus_wait_time").AsInt(),tmp_.at("bus_velocity").AsDouble() });
 		}
 	}
 	if (node_.find("stat_requests"s) != node_.end()) {
+		is_make_base = false;
 		for (auto& n : node_.at("stat_requests"s).AsArray()) {
 			ParseGetRequst(n);
 		}
-	}
-	if (node_.find("render_settings"s) != node_.end()) {
-		ParseRenderSetting(node_.at("render_settings"s).AsDict());
-	}
-	if (node_.find("routing_settings"s) != node_.end()) {
-		auto tmp_ = node_.at("routing_settings"s).AsDict();
-		requsts_[RequestType::AddSetting].push_back(AddSettingRequest{tmp_.at("bus_wait_time").AsInt(),tmp_.at("bus_velocity").AsDouble()});
 	}
 	
 }
@@ -96,13 +106,16 @@ void JSONReader::ProcesAddRequest() {
 	}if (requsts_.find(RequestType::AddSetting) != requsts_.end()) {\
 
 		auto tmp_ = std::get<AddSettingRequest>(*requsts_.at(RequestType::AddSetting).begin());
-		db_.SetWaitTime(tmp_.wait_time);
-		db_.SetVelocityTime(tmp_.velosity_time);
+		route_setting.bus_wait_time = tmp_.wait_time;
+		route_setting.bus_velocity = tmp_.velosity_time;
 	
 	}
 
-	
+	serial_.SetSerializationSettings({ serialization_setting_ });
+	serial_.Serialize(db_,map_, route_setting);
 }
+
+
 json::Node JSONReader::BuildGetBusAnswer( GetInfo request) {
 	using namespace std::literals;
 	BusInfo info_ = db_.GetBusInfo(request.name);
@@ -201,8 +214,9 @@ json::Node JSONReader::BuildGetRouteAnswer( GetInfo request, RequestHandler& man
 json::Document JSONReader::ProcesGetRequest() {
 
 	using namespace std::literals;
-
-	RequestHandler manager(db_, map_);
+	serial_.SetSerializationSettings({ serialization_setting_ });
+	serial_.Deserialize(db_,map_,route_setting);
+	RequestHandler manager(db_, map_, route_setting);
 	json::Array result;
 	for (auto request : requsts_.at(RequestType::GetInfo)) {
 		auto tmp_ = std::get<GetInfo>(request);
@@ -355,11 +369,19 @@ svg::Color JSONReader::ParseColor(const json::Node& color_) {
 
 
 
-void JSONReader::ProcessJsonRequests(std::istream& input, std::ostream& output) {
+
+
+
+
+void JSONReader::ProcessJsonRequests(std::istream& input, std::ostream& output,bool is_make_base) {
 
 	ParseJson(input);
-	ProcesAddRequest();
-	auto answer = ProcesGetRequest();
-	json::Print(answer, output);
+	if (is_make_base) {
+		ProcesAddRequest();
 
+	}
+	else {
+		auto answer = ProcesGetRequest();
+		json::Print(answer, output);
+	}
 }

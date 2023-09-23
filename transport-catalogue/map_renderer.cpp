@@ -63,6 +63,11 @@ namespace renderer {
         }
 
     }
+
+    RenderSettings MapRenderer::GetSettings() const
+    {
+        return setting_;
+    }
    
     SphereProjector MapRenderer::AddRoute(std::vector<geo::Coordinates>& coord, std::vector< std::vector<geo::Coordinates>>& all_stop) {
         auto proj = AddAllRoute(coord);

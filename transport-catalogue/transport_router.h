@@ -22,6 +22,12 @@
 
 namespace transport_router {
 
+	struct RouteSettings {
+		int bus_wait_time; 
+		double bus_velocity; 
+	};
+
+	const double HOURS_TO_MIN = 1000 / 60;
 	enum class EdgeType
 	{
 		Wait,
@@ -50,7 +56,7 @@ namespace transport_router {
 	};
 
 	struct RouteInfo {
-		double weight = 0;
+		double weight;
 		std::vector <EdgeInfo> edges;
 	};
 
@@ -61,15 +67,19 @@ namespace transport_router {
 
 	public:
 
-		TransportRouter(TransportCatalogue& db);
+		TransportRouter(TransportCatalogue& db, RouteSettings route_setting);
 
 		std::optional<RouteInfo> FindRoute(std::shared_ptr<Stop>from, std::shared_ptr<Stop> to);
+
+		RouteSettings GetRouteSettings() const;
+
+		void SetSetting(RouteSettings set);
 
 
 	private:
 		TransportCatalogue& db_;
-
-		std::unordered_map<std::string, size_t>stop_to_id;
+		RouteSettings setting_;;
+		std::unordered_map<std::shared_ptr<Stop>, size_t>stop_to_id;
 		std::unordered_map<graph::EdgeId, EdgeInfo>edge_id_to_edge;
 		std::shared_ptr<graph::Router<double>> router_ = nullptr;
 		Graph graph_;
@@ -80,7 +90,7 @@ namespace transport_router {
 
 
 		void AddBusEdges(const std::string& name, std::vector<std::shared_ptr<Stop> >::const_iterator begin, std::vector<std::shared_ptr<Stop> >::const_iterator const end);
-		
+
 	};
 
 

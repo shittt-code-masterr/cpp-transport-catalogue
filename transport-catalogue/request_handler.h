@@ -9,7 +9,7 @@
 class RequestHandler {
 public:
     
-    RequestHandler(transport_catalogue::TransportCatalogue& db, renderer::MapRenderer& renderer);
+    RequestHandler(transport_catalogue::TransportCatalogue& db, renderer::MapRenderer& renderer, transport_router::RouteSettings route_setting);
 
     
     std::shared_ptr<Bus> GetBusStat(const std::string_view bus_name) const;

@@ -126,7 +126,7 @@ namespace renderer {
         std::ostream&GetDocument(std::ostream& out) const ;
 
         void BuildMap(transport_catalogue::TransportCatalogue& db_);
-
+        RenderSettings GetSettings() const;
     private:
 
         RenderSettings setting_;

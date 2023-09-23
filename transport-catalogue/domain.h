@@ -1,8 +1,10 @@
 #pragma once
 
-#include<string>
-#include<vector>
-#include<memory>
+#include <string>
+#include <memory>
+#include <vector>
+#include <set>
+#include <iomanip>
 #include"geo.h"
 
 struct Stop {
@@ -16,6 +18,7 @@ struct Bus {
     bool is_looped;
     std::string name;
     std::vector<std::shared_ptr<Stop>> route;
+    size_t id = 0;
 };
 struct BusInfo {
     int stops_in_route;

@@ -3,8 +3,10 @@
 
 
 namespace transport_router {
-	TransportRouter::TransportRouter(TransportCatalogue& db) :
-		db_(db)
+	TransportRouter::TransportRouter(TransportCatalogue& db,RouteSettings route_setting) :
+		db_(db),
+		setting_(route_setting)
+
 
 	{
 		graph_ = std::move(Graph(db_.GetStops().size() * 2 + 1));
@@ -13,8 +15,8 @@ namespace transport_router {
 	}
 
 	std::optional<transport_router::RouteInfo> TransportRouter::FindRoute(std::shared_ptr<Stop>from, std::shared_ptr<Stop> to) {
-		graph::VertexId from_ = stop_to_id.at(from.get()->name);
-		graph::VertexId to_ = stop_to_id.at(to.get()->name);
+		graph::VertexId from_ = stop_to_id.at(from);
+		graph::VertexId to_ = stop_to_id.at(to);
 
 
 		auto route = router_.get()->BuildRoute(from_, to_);
@@ -26,9 +28,21 @@ namespace transport_router {
 			{
 				steps.push_back(edge_id_to_edge[step]);
 			}
+
 		}
 		transport_router::RouteInfo i = { route.value().weight, steps };
 		return i;
+	}
+
+	RouteSettings TransportRouter::GetRouteSettings() const
+	{
+		return setting_;
+	}
+
+	void TransportRouter::SetSetting(RouteSettings set)
+		
+	{
+		setting_ = set;
 	}
 
 
@@ -38,13 +52,13 @@ namespace transport_router {
 	void TransportRouter::BuildGraph() {
 
 		for (auto stop : db_.GetStops()) {
-			graph::Edge<double> edge_ = { (stop.id) * 2 , (stop.id) * 2 + 1, static_cast<double>(db_.GetWaitTime()) };
+			graph::Edge<double> edge_ = { (stop.id) * 2 , (stop.id) * 2 + 1, static_cast<double>(setting_.bus_wait_time) };
 
 
 
-			stop_to_id[stop.name] = (stop.id * 2);
-			
-			edge_id_to_edge[graph_.AddEdge(edge_)] = { EdgeType::Wait,EdgeWait{stop.name,db_.GetWaitTime() } };
+			stop_to_id[db_.FindStop(stop.name)] = (stop.id * 2);
+
+			edge_id_to_edge[graph_.AddEdge(edge_)] = { EdgeType::Wait,EdgeWait{stop.name,setting_.bus_wait_time } };
 		}
 		for (const Bus& bus : db_.GetBuses()) {
 			AddBus(bus);
@@ -73,17 +87,17 @@ namespace transport_router {
 		for (auto stop1 = begin; stop1 < end; ++stop1) {
 			double all_distance_time = 0;
 			for (auto stop2 = stop1 + 1; stop2 < end; ++stop2) {
-				
-				
-					double distance = db_.GetRealDistance(*(stop2 - 1), *stop2);
-					double ride_time = distance / (db_.GetVelocityTime() * 1000 / 60);
-					all_distance_time += ride_time;
-					graph::Edge<double> edge_ = { (*stop1)->id * 2 + 1, (*stop2)->id * 2 , all_distance_time };
-					edge_id_to_edge[graph_.AddEdge(edge_)] = { EdgeType::Bus,  EdgeBus{name,static_cast<size_t>(std::distance(stop1, stop2)),all_distance_time} };
-				
-					
-					
-				
+
+
+				double distance = db_.GetRealDistance(*(stop2 - 1), *stop2);
+				double ride_time = distance / (setting_.bus_velocity * 1000 / 60);
+				all_distance_time += ride_time;
+				graph::Edge<double> edge_ = { (*stop1)->id * 2 + 1, (*stop2)->id * 2 , all_distance_time };
+				edge_id_to_edge[graph_.AddEdge(edge_)] = { EdgeType::Bus,  EdgeBus{name,static_cast<size_t>(std::distance(stop1, stop2)),all_distance_time} };
+
+
+
+
 			}
 		}
 	}

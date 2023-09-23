@@ -1,10 +1,10 @@
 #include "request_handler.h"
 
 
-RequestHandler::RequestHandler( transport_catalogue::TransportCatalogue& db,  renderer::MapRenderer& renderer):
+RequestHandler::RequestHandler( transport_catalogue::TransportCatalogue& db,  renderer::MapRenderer& renderer, transport_router::RouteSettings route_setting):
 	db_(db),
 	renderer_(renderer),
-	router_(db)
+	router_(db, route_setting)
 {
 	
 }

@@ -8,6 +8,9 @@
 #include <tuple>
 #include <iomanip>
 #include <deque>
+#include <memory>
+#include <filesystem>
+#include <fstream>  
 #include "transport_catalogue.h"
 #include "json.h"
 #include "map_renderer.h"
@@ -16,7 +19,7 @@
 #include "domain.h"
 #include "json_builder.h"
 #include "transport_router.h"
-
+#include "serialization.h"
 
 enum class RequestType {
 		AddStop,
@@ -27,6 +30,7 @@ enum class RequestType {
 		GetStopInfo,
 		GetMap,
 		GetRoute,
+
 		
 };
 struct AddStopRequest
@@ -62,16 +66,26 @@ struct GetInfo{
 
 
 class JSONReader {
+	using Path = std::filesystem::path;
 public:
+	
+	
 	using RequestMap = std::map<RequestType, std::vector<std::variant<AddStopRequest, AddBusRequest, GetInfo, AddSettingRequest>>>;
 
-	void ProcessJsonRequests(std::istream& input, std::ostream& output);
+	void ProcessJsonRequests(std::istream& input, std::ostream& output, bool is_make_base);
 
 private:
 	transport_catalogue::TransportCatalogue db_;
 	renderer::MapRenderer map_;
 	RequestMap requsts_;
+	Serialization serial_;
 
+	transport_router::RouteSettings route_setting;
+	
+
+	std::filesystem::path serialization_setting_;
+	
+	bool is_make_base;
 	void ParseAddRequst(const json::Node& node);
 
 	void ParseGetRequst(const json::Node& node);
@@ -92,4 +106,5 @@ private:
 
 	json::Node BuildGetRouteAnswer(GetInfo request, RequestHandler& manager);
 
+	
 };

@@ -49,7 +49,7 @@ namespace transport_catalogue {
             }
         }
         busname_.insert(name);
-        Bus bus_ = { is_loop, name, std::move(stops) };
+        Bus bus_ = { is_loop, name, std::move(stops),buses_.size()};
         buses_.emplace_back(std::move(bus_));
         auto bus1 = std::make_shared<Bus>(buses_.back());
         for (auto stop : bus1->route) {
@@ -153,20 +153,9 @@ namespace transport_catalogue {
 
         return stops_;
     }
-    void TransportCatalogue::SetWaitTime(int time)
+    
+    std::unordered_map<std::pair<std::shared_ptr<Stop>, std::shared_ptr<Stop>>, double, TransportCatalogue::HasherStop>  TransportCatalogue::GetStopsPairToDistance() const
     {
-        bus_wait_time = time;
-    }
-    void TransportCatalogue::SetVelocityTime(double time)
-    {
-        bus_velocity = time;
-    }
-    int TransportCatalogue::GetWaitTime() const
-    {
-        return bus_wait_time;
-    }
-    double TransportCatalogue::GetVelocityTime() const
-    {
-        return bus_velocity;
+        return stops_pair_to_distance_;
     }
 }
