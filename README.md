@@ -31,7 +31,7 @@ Make Base:
 
 File: make_base_input.json
 Пример:
-
+JSON
   {
       "serialization_settings": {
           "file": "transport_catalogue.db"
@@ -484,7 +484,7 @@ Process Requests:
 
 Fprocess_requests_input.json
 Пример:
-
+JSON
 {
   
   
@@ -521,6 +521,7 @@ Fprocess_requests_input.json
 Выход
 Программа выводит результаты в формате JSON, содержащем информацию о деталях маршрута, статистику автобусов и данные карты.
 Вывод process_requests
+JSON
   [
       {
           "curvature": 1.26723,
