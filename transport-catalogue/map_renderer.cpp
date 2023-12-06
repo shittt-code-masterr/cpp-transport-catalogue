@@ -1,11 +1,5 @@
 #include "map_renderer.h"
 
-
-
-
-
-
-
 namespace renderer {
 
    
@@ -51,13 +45,8 @@ namespace renderer {
                 }
             }
 
-
             renderer::SphereProjector proj_ = AddRoute(all_coordinates, coordinates);
-
-
-
-
-
+           
             BuildBusName(db_,proj_);
             BuildStops(stopname_to_cooord, proj_);
         }
@@ -74,9 +63,6 @@ namespace renderer {
         
         int start = 0;
         for (auto route : all_stop) {
-
-
-
             svg::Polyline line_;
             line_.SetFillColor(svg::NoneColor);
             line_.SetStrokeColor(setting_.color_palette[start % setting_.color_palette.size()]) ;
@@ -88,13 +74,9 @@ namespace renderer {
             for (auto coord_ : route) {
                 auto point = proj(coord_);
                 line_.AddPoint(point);
-               
-                //pnt_.SetCenter(point);
-                //pnt_.SetRadius(setting_.stop_radius);
-            }
+                }
             doc_.Add(line_);
         }
-
 
         return proj;
     }
@@ -105,7 +87,6 @@ namespace renderer {
         svg::Text text;
         svg::Text under_text;
 
-        
         text.SetFillColor(setting_.color_palette[start % setting_.color_palette.size()]);
 
         text.SetPosition(proj(begin));
@@ -159,9 +140,7 @@ namespace renderer {
             svg::Text text;
             svg::Text under_text;
 
-
             text.SetFillColor("black");
-
             text.SetPosition(proj(cord));
             under_text.SetPosition(proj(cord));
             text.SetOffset(svg::Point(setting_.stop_label_offset[0], setting_.stop_label_offset[1]));
@@ -184,8 +163,6 @@ namespace renderer {
             doc_.Add(text);
         
         }
-    
-    
     }
 
     std::ostream& MapRenderer::GetDocument(std::ostream& out) const {
@@ -195,11 +172,8 @@ namespace renderer {
 
     SphereProjector MapRenderer::AddAllRoute(std::vector<geo::Coordinates>& all_route_) {
         return SphereProjector(all_route_.begin(), all_route_.end(), setting_.width, setting_.height, setting_.padding);
-
     }
 
-
-   
     void MapRenderer::BuildBusName(transport_catalogue::TransportCatalogue& db_,renderer::SphereProjector proj_) {
         auto names = db_.GetBusName();
         if (!names.empty()) {
